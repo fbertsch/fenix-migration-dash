@@ -28,18 +28,28 @@ WITH migration_pings AS (
         CASE JSON_EXTRACT_SCALAR(payload, "$.metrics.boolean['migration.telemetry_identifiers.any_failures']") WHEN 'true' THEN TRUE ELSE FALSE END AS migration_telemetry_identifiers_any_failures
       ) AS boolean,
       STRUCT(
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.fxa.success_reason']") AS INT64) AS migration_fxa_success_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.logins.success_reason']") AS INT64) AS migration_logins_success_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.settings.success_reason']") AS INT64) AS migration_settings_success_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.addons.success_reason']") AS INT64) AS migration_addons_success_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.fxa.failure_reason']") AS INT64) AS migration_fxa_failure_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.logins.failure_reason']") AS INT64) AS migration_logins_failure_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.settings.failure_reason']") AS INT64) AS migration_settings_failure_reason,
-        CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.addons.failure_reason']") AS INT64) AS migration_addons_failure_reason
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.fxa.success_reason']") AS INT64) AS migration_fxa_success_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.logins.success_reason']") AS INT64) AS migration_logins_success_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.settings.success_reason']") AS INT64) AS migration_settings_success_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.addons.success_reason']") AS INT64) AS migration_addons_success_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.fxa.failure_reason']") AS INT64) AS migration_fxa_failure_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.logins.failure_reason']") AS INT64) AS migration_logins_failure_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.settings.failure_reason']") AS INT64) AS migration_settings_failure_reason,
+        SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.counter['migration.addons.failure_reason']") AS INT64) AS migration_addons_failure_reason
       ) AS counter,
       STRUCT(
         `moz-fx-data-shared-prod.analysis.udf_json_extract_string_map`(JSON_EXTRACT(payload, "$.metrics.labeled_string['migration.migration_versions']")) AS migration_migration_versions
-      ) AS labeled_string
+      ) AS labeled_string,
+      STRUCT(
+        STRUCT(
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks_duration'].time_unit") AS STRING) AS time_unit,
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks_duration'].value") AS INT64) AS value
+        ) AS migration_bookmarks_duration,
+        STRUCT(
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history_duration'].time_unit") AS STRING) AS time_unit,
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history_duration'].value") AS INT64) AS value
+        ) AS migration_history_duration
+      ) AS timespan
     ) AS metrics
   FROM
     migration_pings
@@ -77,7 +87,8 @@ SELECT
         ) AS counter,
         STRUCT(
             metrics.labeled_string.migration_migration_versions
-        ) AS labeled_string
+        ) AS labeled_string,
+        metrics.timespan AS timespan
     ) AS metrics
 FROM `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_live.migration_v1`
 WHERE DATE(submission_timestamp) = current_date
@@ -110,7 +121,8 @@ SELECT
         ) AS counter,
         STRUCT(
             metrics.labeled_string.migration_migration_versions
-        ) AS labeled_string
+        ) AS labeled_string,
+        metrics.timespan AS timespan
     ) AS metrics
 FROM `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_stable.migration_v1`
 WHERE 
