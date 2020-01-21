@@ -65,20 +65,20 @@ def _deploy_queries(query=None):
 
         destination_base = filepath.name.split('.')[0]
 
-        if query is not None and destination_base != query:
-            continue
-
         has_param = False
         for query_param, values in query_parameters.items():
             if ('{' + query_param + '}') in destination_base:
                 for value in values:
                     fstr = {query_param: value}
-                    queries.append((destination_base.format(**fstr), base_query, fstr))
+                    queries.append((destination_base, destination_base.format(**fstr), base_query, fstr))
                 break
         else:
             queries.append((destination_base, base_query, {}))
 
-    for destination_base, base_query, addl_params in queries:
+    if query is not None:
+        queries = [q for q in queries if q[0] == query or q[1] == query]
+
+    for _, destination_base, base_query, addl_params in queries:
         print(f"\nCreating table {destination_base}")
 
         query_types = [
