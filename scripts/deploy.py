@@ -44,6 +44,10 @@ query_parameters = {
         "logins",
         "settings",
         "addons"
+    ],
+    "timespan_migration_type": [
+        "history",
+        "bookmarks"
     ]
 }
 
