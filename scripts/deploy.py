@@ -73,7 +73,7 @@ def _deploy_queries(query=None):
                     queries.append((destination_base, destination_base.format(**fstr), base_query, fstr))
                 break
         else:
-            queries.append((destination_base, base_query, {}))
+            queries.append((destination_base, destination_base, base_query, {}))
 
     if query is not None:
         queries = [q for q in queries if q[0] == query or q[1] == query]
