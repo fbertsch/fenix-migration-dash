@@ -11,3 +11,22 @@ For each query, we:
 
 This method prevents us from constantly polling all of history for a live query,
 while the historical data remains the same.
+
+## Deploying Schemas
+
+First, install requirements: `pip install -r requirements.txt`
+
+To deploy all schemas:
+```
+python scripts/deploy.py deploy-queries
+```
+
+You can also deploy a single templated query:
+```
+python scripts/deploy.py deploy-queries --query firefox_android_nightly_migration_{migration_type}_attempts
+```
+
+Or, a post-templated schema, where the template has been filled in:
+```
+python scripts/deploy.py deploy-queries --query firefox_android_nightly_migration_settings_attempts
+```
