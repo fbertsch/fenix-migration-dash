@@ -42,12 +42,12 @@ WITH migration_pings AS (
       ) AS labeled_string,
       STRUCT(
         STRUCT(
-            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks_duration'].time_unit") AS STRING) AS time_unit,
-            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks_duration'].value") AS INT64) AS value
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks.duration'].time_unit") AS STRING) AS time_unit,
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.bookmarks.duration'].value") AS INT64) AS value
         ) AS migration_bookmarks_duration,
         STRUCT(
-            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history_duration'].time_unit") AS STRING) AS time_unit,
-            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history_duration'].value") AS INT64) AS value
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history.duration'].time_unit") AS STRING) AS time_unit,
+            SAFE_CAST(JSON_EXTRACT_SCALAR(payload, "$.metrics.timespan['migration.history.duration'].value") AS INT64) AS value
         ) AS migration_history_duration
       ) AS timespan
     ) AS metrics
