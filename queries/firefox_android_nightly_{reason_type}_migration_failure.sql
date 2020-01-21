@@ -25,10 +25,27 @@ WITH  client_attempts AS (
     reason_type,
     migration_version,
     failure_reason
+), codes AS (
+  SELECT failure_reason + 1 AS failure_reason, code
+  FROM UNNEST([
+    'LOGINS_MP_CHECK',
+    'LOGINS_UNSUPPORTED_LOGINS_DB',
+    'LOGINS_ENCRYPTION',
+    'LOGINS_GET',
+    'LOGINS_RUST_IMPORT',
+    'SETTINGS_MISSING_FHR_VALUE',
+    'SETTINGS_WRONG_TELEMETRY_VALUE',
+    'ADDON_QUERY',
+    'FXA_CORRUPT_ACCOUNT_STATE',
+    'FXA_UNSUPPORTED_VERSIONS',
+    'FXA_SIGN_IN_FAILED',
+    'FXA_CUSTOM_SERVER']) AS code WITH OFFSET failure_reason
 )
 
 SELECT
   DATE(minute) AS date,
-  *
+  counts.* REPLACE (COALESCE(code, CAST(counts.failure_reason AS STRING)) AS failure_reason)
 FROM
   counts
+LEFT JOIN
+  codes USING (failure_reason)

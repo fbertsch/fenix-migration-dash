@@ -25,10 +25,24 @@ WITH  client_attempts AS (
     reason_type,
     migration_version,
     success_reason 
+), codes AS (
+  SELECT success_reason + 1 AS success_reason, code
+  FROM UNNEST([
+    'LOGINS_MP_SET',
+    'LOGINS_MIGRATED',
+    'FXA_NO_ACCOUNT',
+    'FXA_BAD_AUTH',
+    'FXA_SIGNED_IN',
+    'SETTINGS_NO_PREFS',
+    'SETTINGS_MIGRATED',
+    'ADDONS_NO',
+    'ADDONS_MIGRATED']) AS code WITH OFFSET success_reason
 )
 
 SELECT
   DATE(minute) AS date,
-  *
+  counts.* REPLACE (COALESCE(code, CAST(counts.success_reason AS STRING)) AS success_reason)
 FROM
   counts
+LEFT JOIN
+  codes USING (success_reason)
