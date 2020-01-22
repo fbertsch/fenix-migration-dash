@@ -3,24 +3,15 @@ WITH all_migration_attempts AS (
     client_info.client_id,
     TIMESTAMP_TRUNC(submission_timestamp, MINUTE) AS minute,
     TRUE as attempted,
-    COALESCE(metrics.boolean.migration_history_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_bookmarks_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_open_tabs_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_fxa_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_gecko_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_logins_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_settings_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_addons_any_failures, FALSE)
-      OR COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS any_failures,
-    COALESCE(metrics.boolean.migration_history_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_bookmarks_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_open_tabs_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_fxa_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_gecko_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_logins_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_settings_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_addons_any_failures, TRUE)
-      AND COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, TRUE) AS all_failures
+    COALESCE(metrics.boolean.migration_history_any_failures, FALSE) AS history_failed,
+    COALESCE(metrics.boolean.migration_bookmarks_any_failures, FALSE) AS bookmarks_failed,
+    COALESCE(metrics.boolean.migration_open_tabs_any_failures, FALSE) AS open_tabs_failed,
+    COALESCE(metrics.boolean.migration_fxa_any_failures, FALSE) AS fxa_failed,
+    COALESCE(metrics.boolean.migration_gecko_any_failures, FALSE) AS gecko_failed,
+    COALESCE(metrics.boolean.migration_logins_any_failures, FALSE) AS logins_failed,
+    COALESCE(metrics.boolean.migration_settings_any_failures, FALSE) AS settings_failed,
+    COALESCE(metrics.boolean.migration_addons_any_failures, FALSE) AS addons_failed,
+    COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS telemetry_ids_failed
   FROM
     `moz-fx-data-shared-prod.analysis.org_mozilla_fennec_aurora_migration`
   WHERE
@@ -30,9 +21,26 @@ WITH all_migration_attempts AS (
   SELECT
     MIN(minute) AS minute,
     LOGICAL_OR(attempted) AS attempted,
-    NOT LOGICAL_OR(any_failures) AS succeeded,
-    LOGICAL_OR(any_failures) AND NOT LOGICAL_AND(all_failures) AS partially_succeeded,
-    LOGICAL_AND(all_failures) AS failed
+
+    LOGICAL_OR(history_failed)
+        OR LOGICAL_OR(bookmarks_failed)
+        OR LOGICAL_OR(open_tabs_failed)
+        OR LOGICAL_OR(fxa_failed)
+        OR LOGICAL_OR(gecko_failed)
+        OR LOGICAL_OR(logins_failed)
+        OR LOGICAL_OR(settings_failed)
+        OR LOGICAL_OR(addons_failed)
+        OR LOGICAL_OR(telemetry_ids_failed) AS any_failed,
+
+    LOGICAL_OR(history_failed)
+        AND LOGICAL_OR(bookmarks_failed)
+        AND LOGICAL_OR(open_tabs_failed)
+        AND LOGICAL_OR(fxa_failed)
+        AND LOGICAL_OR(gecko_failed)
+        AND LOGICAL_OR(logins_failed)
+        AND LOGICAL_OR(settings_failed)
+        AND LOGICAL_OR(addons_failed)
+        AND LOGICAL_OR(telemetry_ids_failed) AS all_failed
   FROM
     all_migration_attempts
   GROUP BY
@@ -41,9 +49,9 @@ WITH all_migration_attempts AS (
   SELECT
     minute,
     SUM(IF(attempted, 1, 0)) AS attempts,
-    SUM(IF(succeeded, 1, 0)) AS successes,
-    SUM(IF(partially_succeeded, 1, 0)) AS partial_successes,
-    SUM(IF(failed, 1, 0)) AS failures
+    SUM(IF(NOT any_failed, 1, 0)) AS successes,
+    SUM(IF(any_failed AND NOT all_failed, 1, 0)) AS partial_successes,
+    SUM(IF(all_failed, 1, 0)) AS failures
   FROM
     client_status
   GROUP BY
