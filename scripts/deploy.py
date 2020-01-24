@@ -40,12 +40,6 @@ query_parameters = {
         "addons",
         "telemetry_identifiers"
     ],
-    "reason_type": [
-        "fxa",
-        "logins",
-        "settings",
-        "addons"
-    ],
     "timespan_migration_type": [
         "history",
         "bookmarks"
