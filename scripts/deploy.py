@@ -5,6 +5,7 @@ import subprocess
 import click
 import sys
 import logging
+import time
 
 from google.protobuf import json_format
 from google.cloud import bigquery
@@ -161,13 +162,16 @@ def _deploy_queries(query=None):
                 os.system(mk_cmd)
 
             elif config['type'] == "run":
-                sql = f'CREATE OR REPLACE TABLE `{dest_dataset}.{config["destination_table"]}` '
-                if config.get("partitioning_field"):
-                    sql += f'PARTITION BY {config["partitioning_field"]} '
-                sql += f'AS {query}'
+                time_partitioning = None
+                if config.get("partioning_field"):
+                    time_partitioning = bigquery.table.TimePartitioning(field=config["partioning_field"])
+                
+                job_config = bigquery.QueryJobConfig(
+                    destination=f'{project}.{dest_dataset}.{config["destination_table"]}',
+                    time_partitioning=time_partitioning)
 
                 print("  ...Creating " + config["destination_table"])
-                job = bq_client.query(sql)
+                job = bq_client.query(query, job_config=job_config)
                 job.result()
 
         tables = set([c["destination_table"] for c in query_types])
@@ -176,6 +180,9 @@ def _deploy_queries(query=None):
         print("  ...Creating View")
         job = bq_client.query(sql)
         job.result()
+
+        print("\nSleeping for 5s\n")
+        time.sleep(5)
 
 
 @click.command()
