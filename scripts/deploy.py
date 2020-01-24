@@ -157,14 +157,17 @@ def _deploy_queries(query=None):
 
             elif config['type'] == "run":
                 time_partitioning = None
-                if config.get("partioning_field"):
-                    time_partitioning = bigquery.table.TimePartitioning(field=config["partioning_field"])
+                if config.get("partitioning_field"):
+                    time_partitioning = bigquery.table.TimePartitioning(field=config["partitioning_field"])
                 
+                destination = f'{project}.{dest_dataset}.{config["destination_table"]}'
                 job_config = bigquery.QueryJobConfig(
-                    destination=f'{project}.{dest_dataset}.{config["destination_table"]}',
-                    time_partitioning=time_partitioning)
+                    destination=destination,
+                    time_partitioning=time_partitioning,
+                    write_disposition=bigquery.job.WriteDisposition.WRITE_TRUNCATE)
 
                 print("  ...Creating " + config["destination_table"])
+                bq_client.delete_table(destination, not_found_ok=True)
                 job = bq_client.query(query, job_config=job_config)
                 job.result()
 
