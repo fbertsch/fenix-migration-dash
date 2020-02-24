@@ -38,7 +38,9 @@ query_parameters = {
         "logins",
         "settings",
         "addons",
-        "telemetry_identifiers"
+        "telemetry_identifiers",
+        "search",
+        "pinned_sites"
     ],
     "timespan_migration_type": [
         "history",
@@ -46,7 +48,7 @@ query_parameters = {
     ]
 }
 
-def _deploy_queries(query=None):
+def _deploy_queries(query=None, verbose=False):
     queries = []
     for filepath in root.iterdir():
         if not filepath.is_file():
@@ -153,20 +155,24 @@ def _deploy_queries(query=None):
                 )
 
                 print("  ...Creating scheduled query '{}'".format(config["display_name"]))
+                if verbose:
+                    print(params["query"])
                 os.system(mk_cmd)
 
             elif config['type'] == "run":
                 time_partitioning = None
                 if config.get("partitioning_field"):
                     time_partitioning = bigquery.table.TimePartitioning(field=config["partitioning_field"])
-                
+
                 destination = f'{project}.{dest_dataset}.{config["destination_table"]}'
                 job_config = bigquery.QueryJobConfig(
                     destination=destination,
                     time_partitioning=time_partitioning,
                     write_disposition=bigquery.job.WriteDisposition.WRITE_TRUNCATE)
 
-                print("  ...Creating " + config["destination_table"])
+                print("\n  ...Creating " + config["destination_table"])
+                if verbose:
+                    print(query)
                 bq_client.delete_table(destination, not_found_ok=True)
                 job = bq_client.query(query, job_config=job_config)
                 job.result()
@@ -178,14 +184,15 @@ def _deploy_queries(query=None):
         job = bq_client.query(sql)
         job.result()
 
-        print("\nSleeping for 5s\n")
-        time.sleep(5)
+        print("\nSleeping for 10s\n")
+        time.sleep(10)
 
 
 @click.command()
 @click.option("--query", required=False)
-def deploy_queries(query):
-    _deploy_queries(query)
+@click.option("--verbose", is_flag=True)
+def deploy_queries(query, verbose):
+    _deploy_queries(query, verbose)
 
 
 @click.group()
