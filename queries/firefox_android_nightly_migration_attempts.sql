@@ -11,7 +11,9 @@ WITH all_migration_attempts AS (
     COALESCE(metrics.boolean.migration_logins_any_failures, FALSE) AS logins_failed,
     COALESCE(metrics.boolean.migration_settings_any_failures, FALSE) AS settings_failed,
     COALESCE(metrics.boolean.migration_addons_any_failures, FALSE) AS addons_failed,
-    COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS telemetry_ids_failed
+    COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS telemetry_ids_failed,
+    COALESCE(metrics.boolean.migration_search_any_failures, FALSE) AS search_failed,
+    COALESCE(metrics.boolean.migration_pinned_sites_any_failures, FALSE) AS pinned_sites_failed
   FROM
     `moz-fx-data-shared-prod.analysis.org_mozilla_fennec_aurora_migration`
   WHERE
@@ -30,7 +32,9 @@ WITH all_migration_attempts AS (
         OR LOGICAL_OR(logins_failed)
         OR LOGICAL_OR(settings_failed)
         OR LOGICAL_OR(addons_failed)
-        OR LOGICAL_OR(telemetry_ids_failed) AS any_failed,
+        OR LOGICAL_OR(telemetry_ids_failed) 
+        OR LOGICAL_OR(search_failed)
+        OR LOGICAL_OR(pinned_sites_failed) AS any_failed,
 
     LOGICAL_OR(history_failed)
         AND LOGICAL_OR(bookmarks_failed)
@@ -40,7 +44,9 @@ WITH all_migration_attempts AS (
         AND LOGICAL_OR(logins_failed)
         AND LOGICAL_OR(settings_failed)
         AND LOGICAL_OR(addons_failed)
-        AND LOGICAL_OR(telemetry_ids_failed) AS all_failed
+        AND LOGICAL_OR(telemetry_ids_failed) 
+        AND LOGICAL_OR(search_failed)
+        AND LOGICAL_OR(pinned_sites_failed) AS all_failed
   FROM
     all_migration_attempts
   GROUP BY

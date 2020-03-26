@@ -11,7 +11,9 @@ WITH all_migration_attempts AS (
     COALESCE(metrics.boolean.migration_logins_any_failures, FALSE) AS logins_failed,
     COALESCE(metrics.boolean.migration_settings_any_failures, FALSE) AS settings_failed,
     COALESCE(metrics.boolean.migration_addons_any_failures, FALSE) AS addons_failed,
-    COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS telemetry_ids_failed
+    COALESCE(metrics.boolean.migration_telemetry_identifiers_any_failures, FALSE) AS telemetry_ids_failed,
+    COALESCE(metrics.boolean.migration_search_any_failures, FALSE) AS search_failed,
+    COALESCE(metrics.boolean.migration_pinned_sites_any_failures, FALSE) AS pinned_sites_failed,
   FROM
     `moz-fx-data-shared-prod.analysis.org_mozilla_fennec_aurora_migration`
   WHERE
@@ -29,6 +31,8 @@ WITH all_migration_attempts AS (
     LOGICAL_OR(settings_failed) AS settings_failed,
     LOGICAL_OR(addons_failed) AS addons_failed,
     LOGICAL_OR(telemetry_ids_failed) AS telemetry_ids_failed,
+    LOGICAL_OR(search_failed) AS search_failed,
+    LOGICAL_OR(pinned_sites_failed) AS pinned_sites_failed,
   FROM
     all_migration_attempts
   GROUP BY
@@ -45,6 +49,8 @@ WITH all_migration_attempts AS (
     SUM(IF(settings_failed, 1, 0)) AS settings_failed_count,
     SUM(IF(addons_failed, 1, 0)) AS addons_failed_count,
     SUM(IF(telemetry_ids_failed, 1, 0)) AS telemetry_ids_failed_count,
+    SUM(IF(search_failed, 1, 0)) AS search_failed_count,
+    SUM(IF(pinned_sites_failed, 1, 0)) AS pinned_sites_failed_count,
   FROM
     client_status
   GROUP BY

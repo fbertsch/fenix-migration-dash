@@ -114,7 +114,7 @@ def _deploy_queries(query=None, verbose=False):
                 "start_date": "DATE_SUB(current_date, interval 1 day)",
                 "end_date": "DATE_SUB(current_date, interval 1 day)",
                 "dataset": "telemetry",
-                "schedule": "every day 00:20",
+                "schedule": "every day 05:20",
                 "destination_table": f"{destination_base}_stable",
                 "core_version_suffix": "",
                 "partitioning_field": "date",

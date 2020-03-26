@@ -4,9 +4,6 @@ WITH migrated_client_pings AS (
     client_info.client_id AS client_id
   FROM
     `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_stable.migration_v1`
-  WHERE
-    DATE(submission_timestamp) >= '2020-01-20'
-    AND DATE(submission_timestamp) < current_date
   UNION ALL
   SELECT
     TIMESTAMP_TRUNC(submission_timestamp, HOUR) AS hour,
@@ -21,9 +18,6 @@ WITH migrated_client_pings AS (
     client_info.client_id AS client_id
   FROM
     `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_stable.baseline_v1`
-  WHERE
-    DATE(submission_timestamp) >= '2020-01-20'
-    AND DATE(submission_timestamp) < current_date
   UNION ALL
   SELECT
     TIMESTAMP_TRUNC(submission_timestamp, HOUR) AS hour,
@@ -38,6 +32,9 @@ WITH migrated_client_pings AS (
     COUNT(DISTINCT client_id) AS client_count
   FROM
     migrated_client_pings
+  WHERE
+    DATE(hour) >= {start_date}
+    AND DATE(hour) <= {end_date}
   GROUP BY
     hour
 ), unmigrated_clients AS (
