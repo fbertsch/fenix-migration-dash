@@ -4,7 +4,7 @@ SELECT
     DATE(submission_timestamp) AS date,
     *
 FROM
-    `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_live.migration_v1`
+    `moz-fx-data-shared-prod.org_mozilla_firefox_beta.migration_v1`
 WHERE
     DATE(submission_timestamp) = current_date
 UNION ALL
@@ -12,6 +12,6 @@ SELECT
     DATE(submission_timestamp) AS date,
     *
 FROM
-    `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_stable.migration_v1`
+    `moz-fx-data-shared-prod.org_mozilla_firefox_beta.migration_v1`
 WHERE
     DATE(submission_timestamp) < current_date
