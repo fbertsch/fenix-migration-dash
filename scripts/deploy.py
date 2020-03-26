@@ -41,10 +41,6 @@ query_parameters = {
         "telemetry_identifiers",
         "search",
         "pinned_sites"
-    ],
-    "timespan_migration_type": [
-        "history",
-        "bookmarks"
     ]
 }
 
