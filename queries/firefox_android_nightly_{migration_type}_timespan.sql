@@ -8,9 +8,9 @@ WITH client_attempts AS (
   FROM
     `moz-fx-data-shared-prod.analysis.org_mozilla_fennec_aurora_migration`
   WHERE
-    DATE(submission_timestamp) >= '2020-01-10'
-    AND DATE(submission_timestamp) <= current_date
-    AND metrics.timespan.migration_{migration_type}_duration.value IS NOT NULL
+    DATE(submission_timestamp) >= {start_date}
+    AND DATE(submission_timestamp) <= {end_date}
+    AND metrics.timespan.migration_{migration_type}_total_duration.value IS NOT NULL
 ), counts AS (
   SELECT
     minute,

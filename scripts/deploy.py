@@ -7,7 +7,6 @@ import sys
 import logging
 import time
 
-from google.protobuf import json_format
 from google.cloud import bigquery
 from pathlib import Path
 from pprint import pprint
@@ -24,7 +23,8 @@ bq_client = bigquery.Client(project=project)
 
 root = Path(__file__).parent.parent / 'queries'
 
-existing_schedules = subprocess.check_output(['bq', 'ls', '--transfer_config', '--transfer_location=us', '--project_id', project]).decode('utf-8')
+existing_schedule_cmd = ['bq', 'ls', '--transfer_config', '--transfer_location=us', '--project_id', project]
+existing_schedules = subprocess.check_output(existing_schedule_cmd).decode('utf-8')
 schedules = [s.strip().split('   ') for s in existing_schedules.split('\n')[2:]]
 
 query_parameters = {
